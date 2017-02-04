@@ -1,4 +1,7 @@
-import java.io.File;
+package config;
+
+import util.JsonHelper;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,7 +16,7 @@ public class ConfigHelper {
     public static Config from(Path workingDirectory) throws IOException {
         Path configFile = Paths.get(workingDirectory.toString(), "config.json");
         if (!configFile.toFile().exists()) {
-            throw new IOException("Config file " + configFile + " does not exist!");
+            throw new IOException("config.Config file " + configFile + " does not exist!");
         }
 
         Map<String, String> configMap = JsonHelper.readJson(configFile.toString());

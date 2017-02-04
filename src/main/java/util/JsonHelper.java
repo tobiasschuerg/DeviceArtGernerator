@@ -1,3 +1,5 @@
+package util;
+
 import com.google.gson.stream.JsonReader;
 
 import java.io.FileReader;
@@ -10,7 +12,7 @@ import java.util.Map;
  */
 public class JsonHelper {
 
-    static Map<String, String> readJson(String jsonFile) throws IOException {
+    public static Map<String, String> readJson(String jsonFile) throws IOException {
         JsonReader jsonReader = new JsonReader(new FileReader(jsonFile));
 
         jsonReader.beginObject();
