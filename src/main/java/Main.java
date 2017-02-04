@@ -19,8 +19,6 @@ import java.util.stream.Stream;
 public class Main {
 
     private static final int LINE_SPACING_PX = 30;
-    public static final float FONT_SIZE = 120f;
-    private static File fontFile;
 
     private static Config config;
 
@@ -33,12 +31,10 @@ public class Main {
 
         config = ConfigHelper.from(workingDirectory);
 
-
-        Files.walk(Paths.get(workingDirectory.toString(), "metadata/"), 1)
+        Files.walk(workingDirectory, 1)
                 .forEach(path -> {
                     if (Files.isDirectory(path) && Files.exists(Paths.get(path.toString(), "screenshot_titles.json"))) {
-                        System.out.println("Processing " + path.toString());
-                        fontFile = new File(path.toFile() + "/font.ttf");
+                        System.out.println("Processing > " + path.toString());
                         List<Path> pngs = listFiles(path);
                         try {
                             Map<String, String> titles = JsonHelper.readJson(path.toFile() + "/screenshot_titles.json");
@@ -79,42 +75,41 @@ public class Main {
     }
 
     private static BufferedImage process(BufferedImage old, String title) {
-        int w = old.getWidth();
-        int h = old.getHeight();
-        BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        final int w = old.getWidth();
+        final int h = old.getHeight();
+        final BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        final Graphics2D g2d = img.createGraphics();
 
         float padPercentage = 0.025f;
 
-        Graphics2D g2d = img.createGraphics();
         g2d.setColor(config.backgroudnColor);
         g2d.fillRect(0, 0, w, h);
+
+        BufferedImage background = config.backgroundImage.getSubimage(0, 0, w, h);
+        g2d.drawImage(background, 0, 0, null);
+
         final int screenX = (int) (w * padPercentage);
-        final int moveY = (int) (7 * h * padPercentage);
+        final int imageMarginTop = (int) (7 * h * padPercentage);
         int screenWidth = (int) (w * (1 - 2 * padPercentage));
         int screenHeight = (int) (h * (1 - 2 * padPercentage));
-        g2d.drawImage(old, screenX, moveY, screenWidth, screenHeight, null);
+        g2d.drawImage(old, screenX, imageMarginTop, screenWidth, screenHeight, null);
 
         g2d.setPaint(config.textColor);
 
-        // InputStream stream = ClassLoader.getSystemClassLoader().getResourceAsStream("fonts/Raleway-Medium.ttf");
-        Font font = null;
-        try {
-            font = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(FONT_SIZE);
-        } catch (FontFormatException | IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        g2d.setFont(font);
+        g2d.setFont(config.getFont());
         FontMetrics fm = g2d.getFontMetrics();
-        drawStringMultiLine(g2d, title, w, moveY, fm);
+        drawStringMultiLine(g2d, title, w, imageMarginTop, fm);
         g2d.dispose();
         return img;
     }
 
-    public static void drawStringMultiLine(Graphics2D g, String text, int w, int screenY, FontMetrics fm) {
+    public static void drawStringMultiLine(Graphics2D g, String text, int w, int imageMarginTop, FontMetrics fm) {
         String[] lines = text.split("\n");
-        int y = screenY / 2 - ((lines.length - 1) * fm.getHeight() / 2);
+        int halfLineHeight = fm.getHeight() / 5 * 2;
+
+        g.drawLine(0, imageMarginTop / 2, w, imageMarginTop / 2);
+
+        int y = imageMarginTop / 2 + halfLineHeight - ((lines.length - 1) * halfLineHeight * 2);
         for (String line : lines) {
             int x = w / 2 - (fm.stringWidth(line) / 2);
             g.drawString(line, x, y);
