@@ -1,15 +1,10 @@
-import com.google.gson.stream.JsonReader;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -20,45 +15,35 @@ import java.util.stream.Stream;
 public class Main {
 
     private static final int LINE_SPACING_PX = 30;
-    public static final Color BACKGROUND_COLOR = Color.decode("#ffde31");
-    public static final Color TEXT_COLOR = Color.decode("#386C0B");
     public static final float FONT_SIZE = 120f;
     private static File fontFile;
 
-    public static void main(String[] args) throws IOException {
+    private static Config config;
 
-        Files.walk(Paths.get("metadata/"), 1)
+
+    public static void main(String[] args) throws IOException {
+        Path workingDirectory = Paths.get(args[0]);
+        if (!workingDirectory.toFile().exists()) {
+            throw new IOException(workingDirectory + " does not exist");
+        }
+
+        config = ConfigHelper.from(workingDirectory);
+
+
+        Files.walk(Paths.get(workingDirectory.toString(), "metadata/"), 1)
                 .forEach(path -> {
                     if (Files.isDirectory(path) && Files.exists(Paths.get(path.toString(), "screenshot_titles.json"))) {
                         System.out.println("Processing " + path.toString());
                         fontFile = new File(path.toFile() + "/font.ttf");
                         List<Path> pngs = listFiles(path);
                         try {
-                            Map<String, String> titles = readJson(path.toFile() + "/screenshot_titles.json");
+                            Map<String, String> titles = JsonHelper.readJson(path.toFile() + "/screenshot_titles.json");
                             frameWithCaption(pngs, titles);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
                 });
-    }
-
-    private static Map<String, String> readJson(String jsonFile) throws IOException {
-        JsonReader jsonReader = new JsonReader(new FileReader(jsonFile));
-
-        jsonReader.beginObject();
-
-        Map<String, String> titleMap = new HashMap<>();
-        while (jsonReader.hasNext()) {
-            String name = jsonReader.nextName();
-            String value = jsonReader.nextString();
-            titleMap.put(name, value);
-        }
-
-        jsonReader.endObject();
-        jsonReader.close();
-
-        return titleMap;
     }
 
     private static void frameWithCaption(List<Path> pngs, Map<String, String> titles) {
@@ -97,7 +82,7 @@ public class Main {
         float padPercentage = 0.025f;
 
         Graphics2D g2d = img.createGraphics();
-        g2d.setColor(BACKGROUND_COLOR);
+        g2d.setColor(config.backgroudnColor);
         g2d.fillRect(0, 0, w, h);
         final int screenX = (int) (w * padPercentage);
         final int moveY = (int) (7 * h * padPercentage);
@@ -105,7 +90,7 @@ public class Main {
         int screenHeight = (int) (h * (1 - 2 * padPercentage));
         g2d.drawImage(old, screenX, moveY, screenWidth, screenHeight, null);
 
-        g2d.setPaint(TEXT_COLOR);
+        g2d.setPaint(config.textColor);
 
         // InputStream stream = ClassLoader.getSystemClassLoader().getResourceAsStream("fonts/Raleway-Medium.ttf");
         Font font = null;
