@@ -1,4 +1,5 @@
-package util;
+package generator.util;
+
 
 import com.google.gson.stream.JsonReader;
 

@@ -1,6 +1,8 @@
-import config.Config;
-import config.ConfigHelper;
-import util.JsonHelper;
+package generator;
+
+import generator.config.Config;
+import generator.config.ConfigHelper;
+import generator.util.JsonHelper;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -106,8 +108,6 @@ public class Main {
     public static void drawStringMultiLine(Graphics2D g, String text, int w, int imageMarginTop, FontMetrics fm) {
         String[] lines = text.split("\n");
         int halfLineHeight = fm.getHeight() / 5 * 2;
-
-        g.drawLine(0, imageMarginTop / 2, w, imageMarginTop / 2);
 
         int y = imageMarginTop / 2 + halfLineHeight - ((lines.length - 1) * halfLineHeight * 2);
         for (String line : lines) {
